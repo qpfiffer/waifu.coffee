@@ -1,33 +1,24 @@
-<!DOCTYPE html>
-<html>
-    <head>
-        <link rel="stylesheet" href="{{ url_for('static', filename='css/kube.min.css') }}" />
-        <link rel="stylesheet" href="{{ url_for('static', filename='css/main.css') }}" />
-        <title>waifu.coffee</title>
-    </head>
-    <body>
-        <div class="container">
-            <div class="units-row">
-                <div class="unit-50">
-                    <form method="POST" class="forms" enctype="multipart/form-data">
-                        <input type="hidden" name="_csrf_token" value="{{ csrf_token() }}"/>
-                        <label>
-                            Upload Image
-                            {% if error %}
-                            <span class="error">{{error}}</span>
-                            <input type="file" name="file" class="input-error width-50" />
-                            {% else %}
-                            <input type="file" name="file" class="width-50" />
-                            {% endif %}
-                        </label>
-                        <p>
-                            <button class="btn btn-green width-50">Upload</button>
-                        </p>
-                    </form>
-                </div>
-                <div class="unit-50">
-                </div>
-            </div>
-        </div>
-    </body>
-</html>
+{% extends "base.html" %}
+{% block content %}
+<div class="units-row">
+    <div class="unit-50">
+        <form method="POST" class="forms" enctype="multipart/form-data">
+            <input type="hidden" name="_csrf_token" value="{{ csrf_token() }}"/>
+            <label>
+                Upload Image
+                {% if error %}
+                <span class="error">{{error}}</span>
+                <input type="file" name="file" class="input-error width-50" />
+                {% else %}
+                <input type="file" name="file" class="width-50" />
+                {% endif %}
+            </label>
+            <p>
+                <button class="btn btn-green width-50">Upload</button>
+            </p>
+        </form>
+    </div>
+    <div class="unit-50">
+    </div>
+</div>
+{% endblock %}
