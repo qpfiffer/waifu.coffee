@@ -2,7 +2,7 @@ from waifu.local_settings import allowed_file_extensions
 import random, string
 
 def allowed_file(filename):
-    return '.' in filename and filename.rsplit('.', 1)[1] in ALLOWED_EXTENSIONS
+    return '.' in filename and filename.rsplit('.', 1)[1] in allowed_file_extensions
 
 def random_csrf():
     myrg = random.SystemRandom()
