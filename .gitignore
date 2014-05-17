@@ -6,3 +6,4 @@ dist/
 *.pyc
 dependencies/kyotocabinet-1.2.76/
 dependencies/kyoto_python/
+waifu/*.template

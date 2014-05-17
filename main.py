@@ -1,11 +1,14 @@
 #!/usr/bin/env python2
 from flask import abort, Flask, g, request, session
 
+from waifu.local_settings import secret_key
 from waifu.routes import app as routes
+from waifu.utils import random_csrf
 import sys, getopt, random, string, json, time
 
 app = Flask('waifu')
 app.register_blueprint(routes)
+app.secret_key = secret_key
 #app.register_blueprint(conprocs)
 
 @app.before_request
