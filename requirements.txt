@@ -1,3 +1,4 @@
-python-kyototycoon-binary
+msgpack-python
+pyzmq
 flask
 ipdb

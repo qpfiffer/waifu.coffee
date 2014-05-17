@@ -1,5 +1,19 @@
-from waifu.local_settings import allowed_file_extensions
-import random, string
+from waifu.settings import allowed_file_extensions, runner_uri
+import random, string, msgpack, zmq
+
+def send_to_runner(msg):
+    context = zmq.Context.instance()
+    sock = context.socket(zmq.REQ)
+    sock.bind(runner_uri)
+
+def schedule_new_query(filepath):
+    msg = {
+        'cmd': 'query',
+        'filepath': filepath
+    }
+    packed = msgpack.packb(msg)
+
+    return False
 
 def allowed_file(filename):
     return '.' in filename and filename.lower().rsplit('.', 1)[1] in allowed_file_extensions

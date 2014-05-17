@@ -1,7 +1,7 @@
 #!/usr/bin/env python2
 from flask import abort, Flask, g, request, session
 
-from waifu.local_settings import secret_key, upload_destination
+from waifu.settings import secret_key, upload_destination
 from waifu.routes import app as routes
 from waifu.utils import random_csrf
 import sys, getopt, random, string, json, time
@@ -21,7 +21,6 @@ def setup_db():
             stuff = json.loads(request.data).get("_csrf_token")
             in_data = stuff == token
         except Exception as e:
-            print e
             in_data = False
         if not token or not (in_form or in_data):
             abort(403)
