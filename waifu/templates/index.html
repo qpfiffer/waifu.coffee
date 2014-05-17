@@ -9,14 +9,14 @@
         <div class="container">
             <div class="units-row">
                 <div class="unit-50">
-                    <form method="post" action="" class="forms">
+                    <form method="POST" class="forms">
                         <input type="hidden" name="_csrf_token" value="{{ csrf_token() }}"/>
                         <label>
-                            Choose file
+                            Upload Image
                             <input type="file" name="file" class="width-50" />
                         </label>
                         <p>
-                            <button class="btn-green">Upload</button>
+                            <button class="btn btn-green width-50">Upload</button>
                         </p>
                     </form>
                 </div>

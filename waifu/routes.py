@@ -4,6 +4,9 @@ import json, time, calendar
 
 app = Blueprint('waifu', __name__, template_folder='templates')
 
-@app.route("/", methods=['GET', 'POSTS'])
+@app.route("/", methods=['GET', 'POST'])
 def root():
+    if request.method == 'POST':
+        import ipdb; ipdb.set_trace()
+        "asdf"
     return render_template("index.html")
