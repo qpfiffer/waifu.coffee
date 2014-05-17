@@ -1,15 +1,15 @@
 #!/usr/bin/env python2
 from flask import abort, Flask, g, request, session
 
-from waifu.settings import secret_key, upload_destination
+from waifu.settings import SECRET_KEY, UPLOAD_DESTINATION
 from waifu.routes import app as routes
 from waifu.utils import random_csrf
 import sys, getopt, random, string, json, time
 
 app = Flask('waifu')
 app.register_blueprint(routes)
-app.secret_key = secret_key
-app.config['UPLOAD_FOLDER'] = upload_destination
+app.secret_key = SECRET_KEY
+app.config['UPLOAD_FOLDER'] = UPLOAD_DESTINATION
 #app.register_blueprint(conprocs)
 
 @app.before_request

@@ -2,7 +2,7 @@ from flask import (g, request, current_app, Blueprint, render_template,
                    redirect, url_for, session, abort, Response)
 from werkzeug.utils import secure_filename
 
-from waifu.settings import allowed_file_extensions
+from waifu.settings import ALLOWED_FILE_EXTENSIONS
 from waifu.utils import allowed_file, schedule_new_query
 
 import time, calendar, os
@@ -19,8 +19,9 @@ def root():
             path = os.path.join(current_app.config['UPLOAD_FOLDER'], filename)
             ufile.save(path)
 
-            if schedule_new_query(path):
-                return redirect(url_for('waifu.results', results_id='TODO'))
+            query_key = schedule_new_query(path)
+            if query_key:
+                return redirect(url_for('waifu.results', results_id=query_key))
             else:
                 error = "Could not schedule processing job. Please try again later."
         else:

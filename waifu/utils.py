@@ -1,10 +1,21 @@
-from waifu.settings import allowed_file_extensions, runner_uri
+from waifu.settings import ALLOWED_FILE_EXTENSIONS, RUNNER_URI
 import random, string, msgpack, zmq
 
 def send_to_runner(msg):
     context = zmq.Context.instance()
     sock = context.socket(zmq.REQ)
-    sock.bind(runner_uri)
+    sock.SNDTIMEO = 2000
+    sock.RCVTIMEO = 2000
+
+    sock.connect("tcp://127.0.0.1:8686")
+    sock.send(msg, copy=False)
+
+    try:
+        response = sock.recv()
+    except zmq.ZMQError:
+        return False
+
+    return response
 
 def schedule_new_query(filepath):
     msg = {
@@ -12,11 +23,12 @@ def schedule_new_query(filepath):
         'filepath': filepath
     }
     packed = msgpack.packb(msg)
+    resp = send_to_runner(packed)
 
-    return False
+    return resp
 
 def allowed_file(filename):
-    return '.' in filename and filename.lower().rsplit('.', 1)[1] in allowed_file_extensions
+    return '.' in filename and filename.lower().rsplit('.', 1)[1] in ALLOWED_FILE_EXTENSIONS
 
 def random_csrf():
     myrg = random.SystemRandom()

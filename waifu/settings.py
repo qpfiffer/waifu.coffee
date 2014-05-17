@@ -1,8 +1,8 @@
 # File upload stuff
-allowed_file_extensions = set(['png', 'jpg', 'jpeg', 'gif'])
-upload_destination = "/tmp"
+ALLOWED_FILE_EXTENSIONS = set(['png', 'jpg', 'jpeg', 'gif'])
+UPLOAD_DESTINATION = "/tmp"
 
 # Job runner
-runner_uri = "tcp://*:1979"
+RUNNER_URI = "tcp://127.0.0.1:1979"
 
 from local_settings import *
