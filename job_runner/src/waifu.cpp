@@ -19,6 +19,8 @@ msgpack::sbuffer *waifu::waifuProcessor::process_request(msgpack::unpacked *requ
     obj.convert(&conv_request);
 
     if (conv_request["cmd"] == "query") {
+        std::string filepath = conv_request["filepath"];
+        std::cout << "Filepath: " << filepath << std::endl;
         response_list["success"] = true;
     } else {
         response_list["success"] = false;
