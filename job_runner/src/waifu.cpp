@@ -7,7 +7,7 @@
 using namespace kyotocabinet;
 using namespace waifu;
 
-vector<job> *waifuProcessor::get_jobs_from_db(PolyDB *db) {
+vector<job> *waifuScheduler::get_jobs_from_db(PolyDB *db) {
     std::string value;
     if (!db->get(JOBS_QUEUE_NAME, &value)) {
         cerr << "get error: " << db->error().name() << endl;
@@ -27,8 +27,8 @@ vector<job> *waifuProcessor::get_jobs_from_db(PolyDB *db) {
     return jobs;
 }
 
-bool waifuProcessor::new_query(std::string filepath) {
-    std::cout << "Filepath: " << filepath << std::endl;
+bool waifuScheduler::new_query(job new_job) {
+    std::cout << "Filepath: " << new_job["filepath"] << std::endl;
     PolyDB db;
 
     if (!db.open("jobs.kch", PolyDB::OWRITER | PolyDB::OCREATE)) {
@@ -41,7 +41,6 @@ bool waifuProcessor::new_query(std::string filepath) {
         jobs = new vector<job>;
     }
 
-    job new_job = {{"hash", ""}, {"filename", filepath}};
     jobs->push_back(new_job);
 
     // Serialize
@@ -57,7 +56,7 @@ bool waifuProcessor::new_query(std::string filepath) {
     return true;
 }
 
-msgpack::sbuffer *waifuProcessor::process_request(msgpack::unpacked *request) {
+msgpack::sbuffer *waifuScheduler::process_request(msgpack::unpacked *request) {
     // Setup our response object
     std::map<std::string, bool> response_list;
     response_list["success"] = false;
@@ -71,7 +70,8 @@ msgpack::sbuffer *waifuProcessor::process_request(msgpack::unpacked *request) {
     if (conv_request["cmd"] == "query") {
         std::string filepath = conv_request["filepath"];
         // BE EXPLICIT. B.E. EXPLICIT!
-        bool ret = this->new_query(filepath);
+        job new_job = {{"hash", ""}, {"filepath", filepath}};
+        bool ret = this->new_query(new_job);
         response_list["success"] = ret;
     } else {
         response_list["success"] = false;
@@ -86,7 +86,7 @@ msgpack::sbuffer *waifuProcessor::process_request(msgpack::unpacked *request) {
 int waifu::main_loop(int argc, char *argv[]) {
     char *URI = argv[1];
 
-    waifuProcessor mainProcessor;
+    waifuScheduler mainScheduler;
 
     // Prepare our context and socket
     zmq::context_t context(1);
@@ -105,7 +105,7 @@ int waifu::main_loop(int argc, char *argv[]) {
         msgpack::unpack(&unpacked_body, raw_data.data(), raw_data.size());
 
         // Process the job
-        msgpack::sbuffer *result = mainProcessor.process_request(&unpacked_body);
+        msgpack::sbuffer *result = mainScheduler.process_request(&unpacked_body);
 
         // Copy result data into response buffer
         zmq::message_t response(result->size());

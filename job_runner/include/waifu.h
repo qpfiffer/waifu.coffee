@@ -13,11 +13,11 @@ namespace waifu {
 
     int main_loop(int argc, char *argv[]);
 
-    class waifuProcessor {
+    class waifuScheduler {
         public:
             sbuffer *process_request(unpacked *request);
         private:
-            bool new_query(std::string filepath);
+            bool new_query(job new_job);
             vector<job> *get_jobs_from_db(PolyDB *db);
     };
 }
