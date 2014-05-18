@@ -2,10 +2,11 @@ CPPFLAGS=-Wall -Werror -g3 -O2
 INCLUDES=-I./include
 LIBS=-lzmq -lstdc++
 NAME=jobrunner
+CC=clang
 
-ifndef CC
-	CC = clang
-endif
+#ifndef CC
+#	CC = g++
+#endif
 
 all: $(NAME)
 
@@ -14,7 +15,7 @@ clean:
 	rm $(NAME)
 
 %.o: ./src/%.cpp
-	$(CC) $(CPPFLAGS) $(INCLUDES) -c $< $(LIBS)
+	$(CC) $(CPPFLAGS) $(INCLUDES) -fpic -c $<
 
 jobrunner: main.o waifu.o
 	$(CC) $(CPPFLAGS) $(INCLUDES) -o $(NAME) $^ $(LIBS)
