@@ -1,6 +1,6 @@
 CPPFLAGS=-Wall -Werror -g3 -O2
 INCLUDES=-I./include
-LIBS=-lzmq
+LIBS=-lzmq -lstdc++
 NAME=jobrunner
 
 ifndef CC
