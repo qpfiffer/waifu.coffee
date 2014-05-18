@@ -11,7 +11,8 @@ def send_to_runner(msg):
     sock.send(msg, copy=False)
 
     try:
-        response = sock.recv()
+        raw_response = sock.recv()
+        response = msgpack.unpackb(raw_response)
     except zmq.ZMQError:
         return False
 

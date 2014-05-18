@@ -1,11 +1,28 @@
 #include <iostream>
+#include <kcpolydb.h>
 #include <msgpack.hpp>
 #include <zmq.hpp>
 #include "waifu.h"
 
+using namespace std;
+using namespace kyotocabinet;
+
 msgpack::sbuffer *waifu::waifuProcessor::process_request(msgpack::unpacked *request) {
-    std::vector<std::string> response_list;
-    response_list.push_back("test");
+    // Setup our response object
+    std::map<std::string, bool> response_list;
+    response_list["success"] = false;
+
+    // Convert the request into something useful
+    msgpack::object obj = request->get();
+
+    std::map<std::string, std::string> conv_request;
+    obj.convert(&conv_request);
+
+    if (conv_request["cmd"] == "query") {
+        response_list["success"] = true;
+    } else {
+        response_list["success"] = false;
+    }
 
     msgpack::sbuffer *to_return = new msgpack::sbuffer;
     msgpack::pack(to_return, response_list);
