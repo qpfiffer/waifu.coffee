@@ -1,7 +1,5 @@
 #include "waifu.h"
 
-using namespace std;
-
-int main(int argv, char *argc[]) {
-    return 0;
+int main(int argc, char *argv[]) {
+    return waifu::main_loop(argc, argv);
 }
