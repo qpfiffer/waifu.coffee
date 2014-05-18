@@ -7,7 +7,7 @@ def send_to_runner(msg):
     sock.SNDTIMEO = 2000
     sock.RCVTIMEO = 2000
 
-    sock.connect("tcp://127.0.0.1:8686")
+    sock.connect(RUNNER_URI)
     sock.send(msg, copy=False)
 
     try:
