@@ -1,6 +1,6 @@
-CPPFLAGS=-Wall -Werror -g3 -O2
+CPPFLAGS=-std=c++11 -Wall -Werror -g3 -O2
 INCLUDES=-I./include
-LIBS=-lzmq -lmsgpack -lkyotocabinet -lstdc++
+LIBS=-lzmq -lmsgpack -lkyotocabinet -lm -lstdc++
 NAME=jobrunner
 CC=clang
 
