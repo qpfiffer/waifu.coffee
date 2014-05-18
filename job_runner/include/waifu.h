@@ -9,5 +9,7 @@ namespace waifu {
     class waifuProcessor {
         public:
             sbuffer *process_request(unpacked *request);
+        private:
+            void new_query(std::string filepath);
     };
 }

@@ -7,6 +7,11 @@
 using namespace std;
 using namespace kyotocabinet;
 
+void waifu::waifuProcessor::new_query(std::string filepath) {
+    std::cout << "Filepath: " << filepath << std::endl;
+    // TODO: Store new job in kyoto cabinet queue
+}
+
 msgpack::sbuffer *waifu::waifuProcessor::process_request(msgpack::unpacked *request) {
     // Setup our response object
     std::map<std::string, bool> response_list;
@@ -20,7 +25,8 @@ msgpack::sbuffer *waifu::waifuProcessor::process_request(msgpack::unpacked *requ
 
     if (conv_request["cmd"] == "query") {
         std::string filepath = conv_request["filepath"];
-        std::cout << "Filepath: " << filepath << std::endl;
+        // BE EXPLICIT. B.E. EXPLICIT!
+        this->new_query(filepath);
         response_list["success"] = true;
     } else {
         response_list["success"] = false;
