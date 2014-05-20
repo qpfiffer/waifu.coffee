@@ -6,18 +6,25 @@ using namespace kyotocabinet;
 using namespace msgpack;
 using namespace std;
 
+// This is how we reference the job queue in Kyoto Cabinet:
 #define JOBS_QUEUE_NAME "query_jobs"
+
+// How many threads to spin up for processing jobs:
+#define DEFAULT_JOB_PROCESSORS 1
 
 namespace waifu {
     typedef map<string, string> job;
 
     int main_loop(int argc, char *argv[]);
 
-    class waifuScheduler {
+    class scheduler {
         public:
             sbuffer *process_request(unpacked *request);
         private:
             bool new_query(job new_job);
             vector<job> *get_jobs_from_db(PolyDB *db);
+    };
+
+    class worker {
     };
 }

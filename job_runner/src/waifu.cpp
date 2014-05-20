@@ -7,7 +7,7 @@
 using namespace kyotocabinet;
 using namespace waifu;
 
-vector<job> *waifuScheduler::get_jobs_from_db(PolyDB *db) {
+vector<job> *scheduler::get_jobs_from_db(PolyDB *db) {
     std::string value;
     if (!db->get(JOBS_QUEUE_NAME, &value)) {
         cerr << "get error: " << db->error().name() << endl;
@@ -27,7 +27,7 @@ vector<job> *waifuScheduler::get_jobs_from_db(PolyDB *db) {
     return jobs;
 }
 
-bool waifuScheduler::new_query(job new_job) {
+bool scheduler::new_query(job new_job) {
     std::cout << "Filepath: " << new_job["filepath"] << std::endl;
     PolyDB db;
 
@@ -56,7 +56,7 @@ bool waifuScheduler::new_query(job new_job) {
     return true;
 }
 
-msgpack::sbuffer *waifuScheduler::process_request(msgpack::unpacked *request) {
+msgpack::sbuffer *scheduler::process_request(msgpack::unpacked *request) {
     // Setup our response object
     std::map<std::string, bool> response_list;
     response_list["success"] = false;
@@ -86,7 +86,7 @@ msgpack::sbuffer *waifuScheduler::process_request(msgpack::unpacked *request) {
 int waifu::main_loop(int argc, char *argv[]) {
     char *URI = argv[1];
 
-    waifuScheduler mainScheduler;
+    scheduler mainScheduler;
 
     // Prepare our context and socket
     zmq::context_t context(1);
