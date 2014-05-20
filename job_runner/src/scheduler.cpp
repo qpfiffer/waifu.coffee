@@ -1,6 +1,8 @@
 #include <iostream>
 #include <kcpolydb.h>
 #include <msgpack.hpp>
+#include <sstream>
+#include <thread>
 #include "waifu.h"
 
 using namespace kyotocabinet;
@@ -8,10 +10,25 @@ using namespace msgpack;
 using namespace std;
 using namespace waifu;
 
-vector<job> *scheduler::get_jobs_from_db(PolyDB *db) {
+scheduler::scheduler() {
+    if (!db.open(JOBS_DB, PolyDB::OWRITER | PolyDB::OCREATE)) {
+        std::cerr << "[X] Could not open DB: " << db.error().name() << std::endl;
+    }
+}
+
+scheduler::~scheduler() {
+    db.close();
+}
+
+string scheduler::process_query(Job job) {
+    // TODO: this.
+    return 0;
+}
+
+vector<Job> *scheduler::get_jobs_from_db() {
     std::string value;
-    if (!db->get(JOBS_QUEUE_NAME, &value)) {
-        cerr << "get error: " << db->error().name() << endl;
+    if (!db.get(JOBS_QUEUE_NAME, &value)) {
+        cerr << "get error: " << db.error().name() << endl;
         return NULL;
     }
 
@@ -20,28 +37,25 @@ vector<job> *scheduler::get_jobs_from_db(PolyDB *db) {
     msgpack::unpack(&msg, value.data(), value.size());
     msgpack::object obj = msg.get();
 
-    cout << "Current jobs: " << obj << endl;
+    //cout << "Current jobs: " << obj << endl;
 
-    vector<job> *jobs = new vector<job>;
+    vector<Job> *jobs = new vector<Job>;
     obj.convert(jobs);
 
     return jobs;
 }
 
-bool scheduler::new_query(job new_job) {
+bool scheduler::new_query(Job new_job) {
     std::cout << "Filepath: " << new_job["filepath"] << std::endl;
-    PolyDB db;
 
-    if (!db.open("jobs.kch", PolyDB::OWRITER | PolyDB::OCREATE)) {
-        std::cerr << "open error: " << db.error().name() << std::endl;
-        return false;
-    }
-
-    vector<job> *jobs = this->get_jobs_from_db(&db);
+    vector<Job> *jobs = this->get_jobs_from_db();
     if (jobs == NULL) {
-        jobs = new vector<job>;
+        jobs = new vector<Job>;
     }
 
+    // Begin processing query.
+    string worker_id = this->process_query(new_job);
+    new_job["worker_id"] = worker_id;
     jobs->push_back(new_job);
 
     // Serialize
@@ -52,7 +66,6 @@ bool scheduler::new_query(job new_job) {
         std::cerr << "set error: " << db.error().name() << endl;
     }
 
-    db.close();
     delete jobs;
     return true;
 }
@@ -71,7 +84,7 @@ msgpack::sbuffer *scheduler::process_request(msgpack::unpacked *request) {
     if (conv_request["cmd"] == "query") {
         std::string filepath = conv_request["filepath"];
         // BE EXPLICIT. B.E. EXPLICIT!
-        job new_job = {{"hash", ""}, {"filepath", filepath}};
+        Job new_job = {{"hash", ""}, {"filepath", filepath}};
         bool ret = this->new_query(new_job);
         response_list["success"] = ret;
     } else {
