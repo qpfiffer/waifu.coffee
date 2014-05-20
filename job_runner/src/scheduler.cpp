@@ -46,8 +46,9 @@ vector<Job> *scheduler::get_jobs_from_db() {
 }
 
 bool scheduler::new_query(Job new_job) {
-    std::cout << "Filepath: " << new_job["filepath"] << std::endl;
+    std::cout << "[-] Filepath: " << new_job["filepath"] << std::endl;
 
+    // Get the list of jobs to-be-processed
     vector<Job> *jobs = this->get_jobs_from_db();
     if (jobs == NULL) {
         jobs = new vector<Job>;
@@ -64,6 +65,8 @@ bool scheduler::new_query(Job new_job) {
 
     if (!db.set(JOBS_QUEUE_NAME, new_jobs_list.data())) {
         std::cerr << "set error: " << db.error().name() << endl;
+        delete jobs;
+        return false;
     }
 
     delete jobs;
@@ -81,13 +84,14 @@ msgpack::sbuffer *scheduler::process_request(msgpack::unpacked *request) {
     std::map<std::string, std::string> conv_request;
     obj.convert(&conv_request);
 
+    /* Figure out how to route this request */
     if (conv_request["cmd"] == "query") {
         std::string filepath = conv_request["filepath"];
         // BE EXPLICIT. B.E. EXPLICIT!
         Job new_job = {{"hash", ""}, {"filepath", filepath}};
-        bool ret = this->new_query(new_job);
-        response_list["success"] = ret;
+        response_list["success"] = this->new_query(new_job);
     } else {
+        /* Don't know what that command was, fail */
         response_list["success"] = false;
     }
 
