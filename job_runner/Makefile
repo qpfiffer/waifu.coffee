@@ -17,6 +17,6 @@ clean:
 %.o: ./src/%.cpp
 	$(CC) $(CPPFLAGS) $(INCLUDES) -fpic -c $<
 
-jobrunner: main.o waifu.o
+jobrunner: main.o waifu.o scheduler.o
 	$(CC) $(CPPFLAGS) $(INCLUDES) -o $(NAME) $^ $(LIBS)
 

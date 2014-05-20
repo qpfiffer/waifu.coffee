@@ -21,7 +21,9 @@ namespace waifu {
         public:
             sbuffer *process_request(unpacked *request);
         private:
+            /* Schedules a new job to be worked on. */
             bool new_query(job new_job);
+            /* Gets all of the current jobs from the db. */
             vector<job> *get_jobs_from_db(PolyDB *db);
     };
 
