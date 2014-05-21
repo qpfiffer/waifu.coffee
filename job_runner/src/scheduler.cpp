@@ -48,20 +48,11 @@ vector<Job> *scheduler::get_jobs_from_db() {
         jobs->push_back(*job);
     }
 
-    //cout << "Current jobs: " << obj << endl;
-
-
     return jobs;
 }
 
 bool scheduler::new_query(Job new_job) {
     std::cout << "[-] Filepath: " << new_job["filepath"] << std::endl;
-
-    // Get the list of jobs to-be-processed
-    //vector<Job> *jobs = this->get_jobs_from_db();
-    //if (jobs == NULL) {
-    //    jobs = new vector<Job>;
-    //}
 
     // Begin processing query.
     string worker_id = this->process_query(new_job);
