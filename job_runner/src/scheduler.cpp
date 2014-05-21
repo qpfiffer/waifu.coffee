@@ -27,21 +27,29 @@ string scheduler::process_query(Job job) {
 }
 
 vector<Job> *scheduler::get_jobs_from_db() {
-    std::string value;
-    if (!db.get(JOBS_QUEUE_NAME, &value)) {
+    vector<string> matches;
+    if (!db.match_prefix(JOBS_QUEUE_PREFIX, &matches)) {
         cerr << "get error: " << db.error().name() << endl;
         return NULL;
     }
 
-    // Deserialize
-    msgpack::unpacked msg;
-    msgpack::unpack(&msg, value.data(), value.size());
-    msgpack::object obj = msg.get();
+    vector<Job> *jobs = new vector<Job>;
+
+    for (auto & val : matches) {
+        Job *job = new Job;
+
+        // Deserialize
+        msgpack::unpacked msg;
+        msgpack::unpack(&msg, val.data(), val.size());
+
+        msgpack::object obj = msg.get();
+        obj.convert(job);
+
+        jobs->push_back(*job);
+    }
 
     //cout << "Current jobs: " << obj << endl;
 
-    vector<Job> *jobs = new vector<Job>;
-    obj.convert(jobs);
 
     return jobs;
 }
@@ -50,27 +58,28 @@ bool scheduler::new_query(Job new_job) {
     std::cout << "[-] Filepath: " << new_job["filepath"] << std::endl;
 
     // Get the list of jobs to-be-processed
-    vector<Job> *jobs = this->get_jobs_from_db();
-    if (jobs == NULL) {
-        jobs = new vector<Job>;
-    }
+    //vector<Job> *jobs = this->get_jobs_from_db();
+    //if (jobs == NULL) {
+    //    jobs = new vector<Job>;
+    //}
 
     // Begin processing query.
     string worker_id = this->process_query(new_job);
     new_job["worker_id"] = worker_id;
-    jobs->push_back(new_job);
 
     // Serialize
-    msgpack::sbuffer new_jobs_list;
-    msgpack::pack(new_jobs_list, *jobs);
+    msgpack::sbuffer new_sjob;;
+    msgpack::pack(new_sjob, new_job);
 
-    if (!db.set(JOBS_QUEUE_NAME, new_jobs_list.data())) {
+    // Create the key for this job insertion
+    stringstream strm;
+    strm << JOBS_QUEUE_PREFIX << worker_id;
+
+    if (!db.set(strm.str(), new_sjob.data())) {
         std::cerr << "set error: " << db.error().name() << endl;
-        delete jobs;
         return false;
     }
 
-    delete jobs;
     return true;
 }
 

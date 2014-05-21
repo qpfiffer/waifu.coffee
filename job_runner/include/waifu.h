@@ -7,8 +7,8 @@ using namespace kyotocabinet;
 using namespace msgpack;
 using namespace std;
 
-// This is how we reference the job queue in Kyoto Cabinet:
-#define JOBS_QUEUE_NAME "query_jobs"
+// Each job uses this prefix when being inserted/read from the db.
+#define JOBS_QUEUE_PREFIX "query_job"
 
 // The KC DB where jobs are serialized
 #define JOBS_DB "jobs.kct"
