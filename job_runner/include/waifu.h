@@ -11,7 +11,7 @@ using namespace std;
 #define JOBS_QUEUE_NAME "query_jobs"
 
 // The KC DB where jobs are serialized
-#define JOBS_DB "jobs.kch"
+#define JOBS_DB "jobs.kct"
 
 // How many threads to spin up for processing jobs:
 #define DEFAULT_JOB_PROCESSORS 1
