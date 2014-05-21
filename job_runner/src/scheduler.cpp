@@ -2,6 +2,7 @@
 #include <kcpolydb.h>
 #include <msgpack.hpp>
 #include <thread>
+#include <zmq.hpp>
 #include "waifu.h"
 
 using namespace kyotocabinet;
@@ -20,10 +21,11 @@ scheduler::~scheduler() {
 }
 
 string scheduler::process_query(Job job) {
+    // Create a new worker, get it's ID and keep track of it.
     worker *new_worker = new worker(job);
-    this->workers.push_back(new_worker);
-
-    return new_worker->get_id();
+    string worker_id = new_worker->get_id();
+    this->workers[worker_id] = new_worker;
+    return worker_id;
 }
 
 vector<Job> *scheduler::get_jobs_from_db() {
@@ -100,5 +102,34 @@ msgpack::sbuffer *scheduler::process_request(msgpack::unpacked *request) {
     msgpack::pack(to_return, response_list);
 
     return to_return;
+}
+
+void scheduler::spawn_thread() {
+    this->main_thread = std::thread(&scheduler::main_loop, this);
+}
+void scheduler::main_loop() {
+    zmq::context_t context(1);
+    zmq::socket_t socket(context, ZMQ_PULL);
+    socket.bind(SCHEDULER_URI);
+
+    while(true) {
+        zmq::message_t request;
+        socket.recv(&request);
+
+        // Convert to string
+        std::string raw_data = static_cast<char*>(request.data());
+
+        // Convert to msgpack object
+        msgpack::unpacked unpacked_body;
+        msgpack::unpack(&unpacked_body, raw_data.data(), raw_data.size());
+
+        // Process the job
+        msgpack::sbuffer *result = this->process_request(&unpacked_body);
+
+        // Copy result data into response buffer
+        //zmq::message_t response(result->size());
+        //memcpy((void *)response.data(), result->data(), result->size());
+        delete result;
+    }
 }
 

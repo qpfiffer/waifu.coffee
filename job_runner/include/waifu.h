@@ -17,6 +17,7 @@ using namespace std;
 #define DEFAULT_JOB_PROCESSORS 1
 
 #define DEFAULT_URI "tcp://*:1979"
+#define SCHEDULER_URI "ipc:///tmp/waifu/scheduler"
 
 namespace waifu {
     typedef map<string, string> Job;
@@ -51,21 +52,25 @@ namespace waifu {
             scheduler();
             ~scheduler();
 
-            /* Responsible for turning strings like add, query, delete, etc.
-             * into useful commands.
-             */
-            sbuffer *process_request(unpacked *request);
+            void spawn_thread();
         private:
             /* Jobs database */
             PolyDB db;
             /* Tracks all allocated workers */
-            vector<worker *> workers;
+            unordered_map<string, worker *> workers;
+            /* The main scheduling process thread. */
+            thread main_thread;
 
-            /* Schedules a new job to be worked on. */
-            bool new_query(Job new_job);
-            /* Processes a job. Returns the string representation of the thread working on the job. */
-            string process_query(Job job);
             /* Gets all of the current jobs from the db. */
             vector<Job> *get_jobs_from_db();
+            /* The main thread proc that controls interaction with other nodes. */
+            void main_loop();
+            /* Schedules a new job to be worked on. */
+            bool new_query(Job new_job);
+            /* Responsible for turning strings like add, query, delete, etc.
+             * into useful commands. */
+            sbuffer *process_request(unpacked *request);
+            /* Processes a job. Returns the string representation of the thread working on the job. */
+            string process_query(Job job);
     };
 }

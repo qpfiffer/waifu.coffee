@@ -1,4 +1,5 @@
 #include <msgpack.hpp>
+#include <thread>
 #include <zmq.hpp>
 #include "waifu.h"
 
@@ -7,40 +8,42 @@ using namespace waifu;
 
 int waifu::main_loop(int argc, char *argv[]) {
     scheduler mainScheduler;
+    mainScheduler.spawn_thread();
 
     // Prepare our context and socket
     zmq::context_t context(1);
     zmq::socket_t socket(context, ZMQ_REP);
+    zmq::socket_t scheduler_socket(context, ZMQ_PUSH);
 
-    // Figure out what URI to bind to
+    // Setup the main python 0mq interface
     if (argc < 2) {
         socket.bind(DEFAULT_URI);
     } else {
         socket.bind(argv[1]);
     }
 
+    // Setup the main scheduler communication layer
+    scheduler_socket.bind(SCHEDULER_URI);
 
     while (true) {
         // Wait for next request from client
         zmq::message_t request;
         socket.recv(&request);
 
-        // Convert to string
-        std::string raw_data = static_cast<char*>(request.data());
-        // Convert to msgpack object
-        msgpack::unpacked unpacked_body;
-        msgpack::unpack(&unpacked_body, raw_data.data(), raw_data.size());
+        // TODO: Figure out if the request was meant for the scheduler or not
+        // Propogate request to scheduler
+        scheduler_socket.send(request);
 
-        // Process the job
-        msgpack::sbuffer *result = mainScheduler.process_request(&unpacked_body);
+        map<string,bool> to_return = {{"success",true}};
 
-        // Copy result data into response buffer
-        zmq::message_t response(result->size());
-        memcpy((void *)response.data(), result->data(), result->size());
+        msgpack::sbuffer mresponse;
+        msgpack::pack(&mresponse, to_return);
 
-        // Send it back
+        // Convert to 0mq message
+        zmq::message_t response(mresponse.size());
+        memcpy((void *)response.data(), mresponse.data(), mresponse.size());
         socket.send(response);
-        delete result;
+        // TODO: Destroy message to free memory
     }
 
     return 0;
