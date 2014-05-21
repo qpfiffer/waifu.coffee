@@ -1,6 +1,7 @@
 #pragma once
 #include <kcpolydb.h>
 #include <msgpack.hpp>
+#include <thread>
 
 using namespace kyotocabinet;
 using namespace msgpack;
@@ -14,6 +15,8 @@ using namespace std;
 
 // How many threads to spin up for processing jobs:
 #define DEFAULT_JOB_PROCESSORS 1
+
+#define DEFAULT_URI "tcp://*:1979"
 
 namespace waifu {
     typedef map<string, string> Job;
@@ -34,6 +37,8 @@ namespace waifu {
         private:
             Job main_job;
             std::thread main_thread;
+
+            void work();
     };
 
     /* The main scheduler object.
@@ -46,10 +51,15 @@ namespace waifu {
             scheduler();
             ~scheduler();
 
+            /* Responsible for turning strings like add, query, delete, etc.
+             * into useful commands.
+             */
             sbuffer *process_request(unpacked *request);
         private:
             /* Jobs database */
             PolyDB db;
+            /* Tracks all allocated workers */
+            vector<worker *> workers;
 
             /* Schedules a new job to be worked on. */
             bool new_query(Job new_job);

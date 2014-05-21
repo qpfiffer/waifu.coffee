@@ -1,7 +1,6 @@
 #include <iostream>
 #include <kcpolydb.h>
 #include <msgpack.hpp>
-#include <sstream>
 #include <thread>
 #include "waifu.h"
 
@@ -21,8 +20,10 @@ scheduler::~scheduler() {
 }
 
 string scheduler::process_query(Job job) {
-    // TODO: this.
-    return 0;
+    worker *new_worker = new worker(job);
+    this->workers.push_back(new_worker);
+
+    return new_worker->get_id();
 }
 
 vector<Job> *scheduler::get_jobs_from_db() {

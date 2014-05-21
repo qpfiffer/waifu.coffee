@@ -6,14 +6,19 @@ using namespace kyotocabinet;
 using namespace waifu;
 
 int waifu::main_loop(int argc, char *argv[]) {
-    char *URI = argv[1];
-
     scheduler mainScheduler;
 
     // Prepare our context and socket
     zmq::context_t context(1);
     zmq::socket_t socket(context, ZMQ_REP);
-    socket.bind(URI);
+
+    // Figure out what URI to bind to
+    if (argc < 2) {
+        socket.bind(DEFAULT_URI);
+    } else {
+        socket.bind(argv[1]);
+    }
+
 
     while (true) {
         // Wait for next request from client
