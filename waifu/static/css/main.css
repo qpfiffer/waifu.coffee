@@ -1,4 +1,21 @@
-.container {
+#centered_container {
     width: 960px;
     margin: 0 auto;
+    margin-top: 15em;
+}
+#centered_container h1 {
+    text-align: center;
+}
+.container {
+    margin: 0 auto;
+}
+#search_box {
+    padding: 0.6em;
+    border-radius: 2px;
+    border: 1px solid #999;
+}
+#search_box:focus {
+    outline: none !important;
+    border: 1px solid #999;
+    box-shadow: 0 0 0;
 }

@@ -13,20 +13,22 @@ app = Blueprint('waifu', __name__, template_folder='templates')
 def root():
     error = None
     if request.method == 'POST':
-        ufile = request.files['file']
-        if ufile and allowed_file(ufile.filename):
-            filename = secure_filename(ufile.filename)
-            path = os.path.join(current_app.config['UPLOAD_FOLDER'], filename)
-            ufile.save(path)
+        #TODO: Refactor this out
+        if len(request.files) != 0:
+            ufile = request.files['file']
+            if ufile and allowed_file(ufile.filename):
+                filename = secure_filename(ufile.filename)
+                path = os.path.join(current_app.config['UPLOAD_FOLDER'], filename)
+                ufile.save(path)
 
-            query_key = schedule_new_query(path)
-            if query_key:
-                return redirect(url_for('waifu.results', results_id=query_key))
+                query_key = schedule_new_query(path)
+                if query_key:
+                    return redirect(url_for('waifu.results', results_id=query_key))
+                else:
+                    error = "Could not schedule processing job. Please try again later."
             else:
-                error = "Could not schedule processing job. Please try again later."
-        else:
-            error = "Filetype not supported, we currently only allow {}".format(
-            ", ".join(allowed_file_extensions))
+                error = "Filetype not supported, we currently only allow {}".format(
+                ", ".join(ALLOWED_FILE_EXTENSIONS))
     return render_template("index.html", error=error)
 
 @app.route("/<results_id>", methods=['GET'])
