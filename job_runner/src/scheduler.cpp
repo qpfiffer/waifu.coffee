@@ -4,6 +4,7 @@
 #include <thread>
 #include <zmq.hpp>
 #include "waifu.h"
+#include "utils.h"
 
 using namespace kyotocabinet;
 using namespace msgpack;
@@ -76,16 +77,13 @@ bool scheduler::new_query(Job new_job) {
     return true;
 }
 
-msgpack::sbuffer *scheduler::process_request(msgpack::unpacked *request) {
+msgpack::sbuffer *scheduler::process_request(msgpack::object *obj) {
     // Setup our response object
     std::map<std::string, bool> response_list;
     response_list["success"] = false;
 
-    // Convert the request into something useful
-    msgpack::object obj = request->get();
-
     std::map<std::string, std::string> conv_request;
-    obj.convert(&conv_request);
+    obj->convert(&conv_request);
 
     /* Figure out how to route this request */
     if (conv_request["cmd"] == "query") {
@@ -110,25 +108,26 @@ void scheduler::spawn_thread() {
 void scheduler::main_loop() {
     zmq::context_t context(1);
     zmq::socket_t socket(context, ZMQ_PULL);
-    socket.bind(SCHEDULER_URI);
+    socket.connect(SCHEDULER_URI);
+
+    cout << "[-] Socket bound. Scheduler init, yo." << endl;
 
     while(true) {
+        cout << "[-] Scheduler start of loop." << endl;
         zmq::message_t request;
         socket.recv(&request);
 
-        // Convert to string
-        std::string raw_data = static_cast<char*>(request.data());
+        msgpack::object obj;
+        waifu::utils::zmq_to_msgpack(&request, &obj);
 
-        // Convert to msgpack object
-        msgpack::unpacked unpacked_body;
-        msgpack::unpack(&unpacked_body, raw_data.data(), raw_data.size());
+        cout << "[-] Scheduler received: " << obj << endl;
 
         // Process the job
-        msgpack::sbuffer *result = this->process_request(&unpacked_body);
+        msgpack::sbuffer *result = this->process_request(&obj);
 
         // Copy result data into response buffer
-        //zmq::message_t response(result->size());
-        //memcpy((void *)response.data(), result->data(), result->size());
+        //zmq::message_t response(strlen("OK"));
+        //memcpy((void*)response.data(), "OK", strlen("OK"));
         delete result;
     }
 }

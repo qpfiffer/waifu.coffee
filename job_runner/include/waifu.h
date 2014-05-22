@@ -17,7 +17,7 @@ using namespace std;
 #define DEFAULT_JOB_PROCESSORS 1
 
 #define DEFAULT_URI "tcp://*:1979"
-#define SCHEDULER_URI "ipc:///tmp/waifu/scheduler"
+#define SCHEDULER_URI "ipc://scheduler.push"
 
 namespace waifu {
     typedef map<string, string> Job;
@@ -69,7 +69,7 @@ namespace waifu {
             bool new_query(Job new_job);
             /* Responsible for turning strings like add, query, delete, etc.
              * into useful commands. */
-            sbuffer *process_request(unpacked *request);
+            sbuffer *process_request(msgpack::object *request);
             /* Processes a job. Returns the string representation of the thread working on the job. */
             string process_query(Job job);
     };
