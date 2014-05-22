@@ -2,16 +2,17 @@ from flask import (g, request, current_app, Blueprint, render_template,
                    redirect, url_for, session, abort, Response)
 from werkzeug.utils import secure_filename
 
-from waifu.settings import ALLOWED_FILE_EXTENSIONS
+from waifu.settings import ALLOWED_FILE_EXTENSIONS, UPLOAD_DESTINATION
 from waifu.utils import allowed_file, schedule_new_query
 
-import time, calendar, os
+import time, calendar, os, requests
 
 app = Blueprint('waifu', __name__, template_folder='templates')
 
 @app.route("/", methods=['GET', 'POST'])
 def root():
     error = None
+    path = None
     if request.method == 'POST':
         #TODO: Refactor this out
         if len(request.files) != 0:
@@ -20,20 +21,33 @@ def root():
                 filename = secure_filename(ufile.filename)
                 path = os.path.join(current_app.config['UPLOAD_FOLDER'], filename)
                 ufile.save(path)
-
-                query_key = schedule_new_query(path)
-                if query_key:
-                    return redirect(url_for('waifu.results', results_id=query_key))
-                else:
-                    error = "Could not schedule processing job. Please try again later."
             else:
                 error = "Filetype not supported, we currently only allow {}".format(
                 ", ".join(ALLOWED_FILE_EXTENSIONS))
         elif request.form['url'] is not None:
-            error = "URL Upload not ready yet."
+            url = request.form['url']
+            try:
+                resp = requests.get(url, stream=True)
+                if resp.status_code == 200:
+                    filename_bestguess = url.rsplit("/")[-1]
+                    filename = secure_filename(filename_bestguess)
+                    path = os.path.join(current_app.config['UPLOAD_FOLDER'], filename)
+                    with open(path, 'wb+') as f:
+                        for chunk in resp.iter_content():
+                            f.write(chunk)
+            except requests.exceptions.MissingSchema as e:
+                error = "URL provided is invalid. Images must be one of the "\
+                        "following filetypes: {}".format(
+                        ", ".join(ALLOWED_FILE_EXTENSIONS))
+        if error is None:
+            query_key = schedule_new_query(path)
+            if query_key:
+                return redirect(url_for('waifu.results', results_id=query_key))
+            else:
+                error = "Could not schedule processing job. Please try again later."
 
     return render_template("index.html", error=error)
 
-@app.route("/<results_id>", methods=['GET'])
+@app.route("/search/<results_id>", methods=['GET'])
 def results(results_id):
     return render_template("results.html")
