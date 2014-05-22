@@ -3,6 +3,6 @@
 
 namespace waifu {
     namespace utils {
-        msgpack::object *zmq_to_msgpack(zmq::message_t *request);
+        void zmq_to_msgpack(zmq::message_t *request, msgpack::unpacked *unpacked_body, msgpack::object *obj);
     }
 }

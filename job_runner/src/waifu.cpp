@@ -1,3 +1,4 @@
+#include <assert.h>
 #include <msgpack.hpp>
 #include <thread>
 #include <zmq.hpp>
@@ -11,7 +12,7 @@ int waifu::main_loop(int argc, char *argv[]) {
     scheduler mainScheduler;
 
     // Prepare our context and socket
-    zmq::context_t context(1);
+    zmq::context_t context(2);
     zmq::socket_t socket(context, ZMQ_REP);
     zmq::socket_t scheduler_socket(context, ZMQ_PUSH);
 
@@ -33,14 +34,14 @@ int waifu::main_loop(int argc, char *argv[]) {
     while (true) {
         // Wait for next request from client
         zmq::message_t request;
-        socket.recv(&request);
+        assert(socket.recv(&request) == true);
 
-        msgpack::object *obj = NULL;
-        obj = utils::zmq_to_msgpack(&request);
+        //msgpack::object *obj = NULL;
+        //obj = utils::zmq_to_msgpack(&request);
 
-        cout << "[-] Main loop received: " << *obj << endl;
-        cout << "[-] Main loop received (raw): " << (char *)request.data() << endl;
-        delete obj;
+        //cout << "[-] Main loop received: " << *obj << endl;
+        //cout << "[-] Main loop received (raw): " << (char *)request.data() << endl;
+        //delete obj;
 
         // TODO: Figure out if the request was meant for the scheduler or not
         // Propogate request to scheduler

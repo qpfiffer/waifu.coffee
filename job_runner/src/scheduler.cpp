@@ -1,3 +1,4 @@
+#include <assert.h>
 #include <iostream>
 #include <kcpolydb.h>
 #include <msgpack.hpp>
@@ -106,7 +107,7 @@ void scheduler::spawn_thread() {
     this->main_thread = std::thread(&scheduler::main_loop, this);
 }
 void scheduler::main_loop() {
-    zmq::context_t context(1);
+    zmq::context_t context(2);
     zmq::socket_t socket(context, ZMQ_PULL);
     socket.connect(SCHEDULER_URI);
 
@@ -115,20 +116,20 @@ void scheduler::main_loop() {
     while(true) {
         cout << "[-] Scheduler start of loop." << endl;
         zmq::message_t request;
-        socket.recv(&request);
+        assert(socket.recv(&request) == true);
 
-        msgpack::object *obj = NULL;
-        obj = utils::zmq_to_msgpack(&request);
+        msgpack::object obj;
+        msgpack::unpacked unpacked;
+        utils::zmq_to_msgpack(&request, &unpacked, &obj);
 
-        cout << "[-] Scheduler received: " << *obj << endl;
+        cout << "[-] Scheduler received: " << obj << endl;
 
         // Process the job
-        msgpack::sbuffer *result = this->process_request(obj);
+        msgpack::sbuffer *result = this->process_request(&obj);
 
         // Copy result data into response buffer
         //zmq::message_t response(strlen("OK"));
         //memcpy((void*)response.data(), "OK", strlen("OK"));
-        delete obj;
         delete result;
     }
 }
