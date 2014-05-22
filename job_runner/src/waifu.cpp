@@ -35,11 +35,12 @@ int waifu::main_loop(int argc, char *argv[]) {
         zmq::message_t request;
         socket.recv(&request);
 
-        msgpack::object obj;
-        utils::zmq_to_msgpack(&request, &obj);
+        msgpack::object *obj = NULL;
+        obj = utils::zmq_to_msgpack(&request);
 
-        cout << "[-] Main loop received: " << obj << endl;
+        cout << "[-] Main loop received: " << *obj << endl;
         cout << "[-] Main loop received (raw): " << (char *)request.data() << endl;
+        delete obj;
 
         // TODO: Figure out if the request was meant for the scheduler or not
         // Propogate request to scheduler

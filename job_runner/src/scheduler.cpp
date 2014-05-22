@@ -117,17 +117,18 @@ void scheduler::main_loop() {
         zmq::message_t request;
         socket.recv(&request);
 
-        msgpack::object obj;
-        waifu::utils::zmq_to_msgpack(&request, &obj);
+        msgpack::object *obj = NULL;
+        obj = utils::zmq_to_msgpack(&request);
 
-        cout << "[-] Scheduler received: " << obj << endl;
+        cout << "[-] Scheduler received: " << *obj << endl;
 
         // Process the job
-        msgpack::sbuffer *result = this->process_request(&obj);
+        msgpack::sbuffer *result = this->process_request(obj);
 
         // Copy result data into response buffer
         //zmq::message_t response(strlen("OK"));
         //memcpy((void*)response.data(), "OK", strlen("OK"));
+        delete obj;
         delete result;
     }
 }
