@@ -1,6 +1,7 @@
 #include <assert.h>
 #include <iostream>
 #include <kcpolydb.h>
+#include <kcutil.h>
 #include <msgpack.hpp>
 #include <thread>
 #include <zmq.hpp>
@@ -55,7 +56,8 @@ vector<Job> *scheduler::get_jobs_from_db() {
     return jobs;
 }
 
-bool scheduler::new_query(Job new_job) {
+bool scheduler::new_query(Job new_job, ScheduleResult *out) {
+    bool success = true;
     std::cout << "[-] Filepath: " << new_job["filepath"] << std::endl;
 
     // Begin processing query.
@@ -72,16 +74,27 @@ bool scheduler::new_query(Job new_job) {
 
     if (!db.set(strm.str(), new_sjob.data())) {
         std::cerr << "set error: " << db.error().name() << endl;
-        return false;
+        success = false;
     }
 
-    return true;
+    if (success) {
+        string hash_str = strm.str();
+
+        uint64_t query_key = kyotocabinet::hashmurmur(hash_str.c_str(), hash_str.size());
+        char *encoded = kyotocabinet::baseencode(&query_key, sizeof(query_key));
+
+        map<string, string> thing = {{"query_key", encoded}};
+        *out = make_pair(success, thing);
+
+        cout << "[-] Scheduled new processing job: " << encoded << endl;
+    }
+
+    return success;
 }
 
 msgpack::sbuffer *scheduler::process_request(msgpack::object *obj) {
     // Setup our response object
-    std::map<std::string, bool> response_list;
-    response_list["success"] = false;
+    ScheduleResult response_list;
 
     std::map<std::string, std::string> conv_request;
     obj->convert(&conv_request);
@@ -90,11 +103,12 @@ msgpack::sbuffer *scheduler::process_request(msgpack::object *obj) {
     if (conv_request["cmd"] == "query") {
         std::string filepath = conv_request["filepath"];
         // BE EXPLICIT. B.E. EXPLICIT!
-        Job new_job = {{"hash", ""}, {"filepath", filepath}};
-        response_list["success"] = this->new_query(new_job);
+        Job new_job = {{"filepath", filepath}};
+        this->new_query(new_job, &response_list);
     } else {
         /* Don't know what that command was, fail */
-        response_list["success"] = false;
+        map<string, string> thing;
+        response_list = make_pair(false, thing);;
     }
 
     msgpack::sbuffer *to_return = new msgpack::sbuffer;

@@ -2,6 +2,7 @@
 #include <kcpolydb.h>
 #include <msgpack.hpp>
 #include <thread>
+#include <utility>
 
 using namespace kyotocabinet;
 using namespace msgpack;
@@ -21,6 +22,7 @@ using namespace std;
 
 namespace waifu {
     typedef map<string, string> Job;
+    typedef pair<bool, map<string, string>> ScheduleResult;
 
     int main_loop(int argc, char *argv[]);
 
@@ -66,7 +68,7 @@ namespace waifu {
             /* The main thread proc that controls interaction with other nodes. */
             void main_loop();
             /* Schedules a new job to be worked on. */
-            bool new_query(Job new_job);
+            bool new_query(Job new_job, ScheduleResult *out);
             /* Responsible for turning strings like add, query, delete, etc.
              * into useful commands. */
             sbuffer *process_request(msgpack::object *request);
