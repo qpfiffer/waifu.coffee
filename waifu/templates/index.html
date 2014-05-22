@@ -8,17 +8,21 @@
     </div>
     <div class="units-row">
         <div class="unit-centered unit-70">
-            <form id="search_form" method="POST" class="forms" enctype="multipart/form-data">
+            <form id="search_form" method="POST" class="forms">
                 <input type="hidden" name="_csrf_token" value="{{ csrf_token() }}"/>
                 <p class="input-groups">
-                    <input id="search_box" type="text" name="url" autocomplete="off" spellcheck="false" placeholder="URL" autofocus/>
+                    <input id="search_box" type="text" name="url" autocomplete="off" spellcheck="false" autofocus/>
                     <span class="btn-append">
-                        <button id="upload_btn" type='button' class="btn"></button>
+                        <button id="upload_btn" type='button' title="test" class="btn"></button>
                     </span>
                     <span class="btn-append">
                         <button id="search_button" class="btn btn-green">Search</button>
                     </span>
                 </p>
+                {% if error %}
+                <p class="error">{{error}}</p>
+                {% endif %}
+                <p>
             </form>
         </div>
     </div>

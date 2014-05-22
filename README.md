@@ -5,6 +5,7 @@ Python frontend
 ---------------
 
 ```bash
+mkvirtualenv waifu.coffee
 pip install -r requirements.txt
 ./main.py --debug
 ````

@@ -29,6 +29,9 @@ def root():
             else:
                 error = "Filetype not supported, we currently only allow {}".format(
                 ", ".join(ALLOWED_FILE_EXTENSIONS))
+        elif request.form['url'] is not None:
+            error = "URL Upload not ready yet."
+
     return render_template("index.html", error=error)
 
 @app.route("/<results_id>", methods=['GET'])
