@@ -122,7 +122,7 @@ void scheduler::spawn_thread() {
 }
 void scheduler::main_loop() {
     zmq::context_t context(2);
-    zmq::socket_t socket(context, ZMQ_PULL);
+    zmq::socket_t socket(context, ZMQ_REP);
     socket.connect(SCHEDULER_URI);
 
     cout << "[-] Socket bound. Scheduler init, yo." << endl;
@@ -141,9 +141,10 @@ void scheduler::main_loop() {
         // Process the job
         msgpack::sbuffer *result = this->process_request(&obj);
 
-        // Copy result data into response buffer
-        //zmq::message_t response(strlen("OK"));
-        //memcpy((void*)response.data(), "OK", strlen("OK"));
+        // Send the result of processing back to the server
+        zmq::message_t response(result->size());
+        memcpy((void *)response.data(), result->data(), result->size());
+        socket.send(response);
         delete result;
     }
 }

@@ -14,7 +14,7 @@ int waifu::main_loop(int argc, char *argv[]) {
     // Prepare our context and socket
     zmq::context_t context(2);
     zmq::socket_t socket(context, ZMQ_REP);
-    zmq::socket_t scheduler_socket(context, ZMQ_PUSH);
+    zmq::socket_t scheduler_socket(context, ZMQ_REQ);
 
     // Setup the main python 0mq interface
     if (argc < 2) {
@@ -46,17 +46,11 @@ int waifu::main_loop(int argc, char *argv[]) {
         // TODO: Figure out if the request was meant for the scheduler or not
         // Propogate request to scheduler
         scheduler_socket.send(request);
+        zmq::message_t request_2;
+        assert(scheduler_socket.recv(&request_2) == true);
 
-        map<string,bool> to_return = {{"success",true}};
-
-        msgpack::sbuffer mresponse;
-        msgpack::pack(&mresponse, to_return);
-
-        // Convert to 0mq message
-        zmq::message_t response(mresponse.size());
-        memcpy((void *)response.data(), mresponse.data(), mresponse.size());
-        socket.send(response);
-        // TODO: Destroy message to free memory
+        // Send the response from the scheduler back to python
+        socket.send(request_2);
     }
 
     return 0;
