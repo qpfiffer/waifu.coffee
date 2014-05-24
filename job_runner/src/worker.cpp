@@ -1,6 +1,9 @@
-#include <turbojpeg.h>
+#include <fcntl.h>
 #include <sstream>
+#include <sys/mman.h>
 #include <thread>
+#include <turbojpeg.h>
+#include <unistd.h>
 #include "utils.h"
 #include "waifu.h"
 
@@ -13,24 +16,43 @@ worker::~worker() {
 }
 
 bool worker::decompose_jpeg(const string &filepath) {
+    const int COLOR_COMPONENTS = 3;
     // Get the file size so we know how big to build our in-memory buffer
     const int file_size = utils::get_file_size(filepath);
     cout << "[-] Worker opening file of size " << file_size << endl;
 
-    /*
-    mmap
+    // Open jpeg
+    int fd;
+    fd = open(filepath.c_str(), O_RDONLY);
+    assert(fd != -1);
 
-    long unsigned int jpeg_size;
-    int jpegSubsamp, width, height;
+    // Map the file into memory
+    void *addr = NULL;
+    addr = mmap(NULL, (size_t)file_size, PROT_READ, MAP_PRIVATE, fd, 0);
 
+    int jpeg_subsamp, width, height;
+    // Init turbo jpeg decompressor
     tjhandle tj_decompress = tjInitDecompress();
-    tjDecompressHeader2(_jpegDecompressor, _compressedImage, _jpegSize, &width, &height, &jpegSubsamp);
-    unsigned char memory_buffer[width*height*3];
 
-    tjDecompress2(_jpegDecompressor, _compressedImage, _jpegSize, buffer, width, 0, height, TJPF_RGB, TJFLAG_FASTDCT);
+    tjDecompressHeader2(tj_decompress, (unsigned char *)addr, file_size,
+                        &width, &height, &jpeg_subsamp);
 
-    tjDestroy(_jpegDecompressor);
-    */
+    cout << "[-] Worker has opened file of width " << width
+         << " and height " << height << endl;
+    // Now that we know the width and height of our image we can allocate
+    // our decompressed buffer
+    const int DECOMPRESSED_SIZE = width * height * COLOR_COMPONENTS;
+    unsigned char *memory_buffer = new unsigned char[DECOMPRESSED_SIZE];
+    memset(memory_buffer, '\0', DECOMPRESSED_SIZE);
+
+    // Decompress into memory_buffer
+    tjDecompress2(tj_decompress, (unsigned char *)addr, file_size, memory_buffer,
+                  width, 0, height, TJPF_RGB, TJFLAG_FASTDCT);
+    // Tidy up
+    tjDestroy(tj_decompress);
+    delete[] memory_buffer;
+    munmap(addr, (size_t)file_size);
+    close(fd);
 
     return true;
 }

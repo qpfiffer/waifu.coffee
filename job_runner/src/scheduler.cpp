@@ -120,6 +120,7 @@ msgpack::sbuffer *scheduler::process_request(msgpack::object *obj) {
 void scheduler::spawn_thread() {
     this->main_thread = std::thread(&scheduler::main_loop, this);
 }
+
 void scheduler::main_loop() {
     zmq::context_t context(2);
     zmq::socket_t socket(context, ZMQ_REP);
