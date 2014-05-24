@@ -42,6 +42,7 @@ namespace waifu {
             std::thread main_thread;
 
             void work();
+            bool decompose_jpeg(const string &filepath);
     };
 
     /* The main scheduler object.
