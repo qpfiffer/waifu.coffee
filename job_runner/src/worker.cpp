@@ -1,7 +1,7 @@
-#include <cstdio> //libjpeg needs size_t stuff
-#include <jpeglib.h>
+#include <turbojpeg.h>
 #include <sstream>
 #include <thread>
+#include "utils.h"
 #include "waifu.h"
 
 using namespace waifu;
@@ -13,30 +13,25 @@ worker::~worker() {
 }
 
 bool worker::decompose_jpeg(const string &filepath) {
-    // This shit is all right out of the libjpeg documentation.
-    struct jpeg_decompress_struct cinfo;
-    struct jpeg_error_mgr jerr;
+    // Get the file size so we know how big to build our in-memory buffer
+    const int file_size = utils::get_file_size(filepath);
+    cout << "[-] Worker opening file of size " << file_size << endl;
 
-    cinfo.err = jpeg_std_error(&jerr);
-    jpeg_create_decompress(&cinfo);
+    /*
+    mmap
 
-    FILE *infile = NULL;
-    infile = fopen(filepath.c_str(), "rb");
-    if (infile == NULL) {
-        cerr << "[X] Worker Could not open " << filepath << " for processing." << endl;
-        jpeg_destroy_decompress(&cinfo);
-        return false;
-    }
+    long unsigned int jpeg_size;
+    int jpegSubsamp, width, height;
 
-    jpeg_stdio_src(&cinfo, infile);
-    jpeg_read_header(&cinfo, TRUE);
-    jpeg_start_decompress(&cinfo);
+    tjhandle tj_decompress = tjInitDecompress();
+    tjDecompressHeader2(_jpegDecompressor, _compressedImage, _jpegSize, &width, &height, &jpegSubsamp);
+    unsigned char memory_buffer[width*height*3];
 
-    cout << "[-] Worker process: Found image of width " << cinfo.image_width <<
-        " and height " << cinfo.image_height << endl;
+    tjDecompress2(_jpegDecompressor, _compressedImage, _jpegSize, buffer, width, 0, height, TJPF_RGB, TJFLAG_FASTDCT);
 
-    jpeg_finish_decompress(&cinfo);
-    jpeg_destroy_decompress(&cinfo);
+    tjDestroy(_jpegDecompressor);
+    */
+
     return true;
 }
 
