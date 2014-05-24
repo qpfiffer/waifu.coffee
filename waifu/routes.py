@@ -5,7 +5,7 @@ from werkzeug.utils import secure_filename
 from waifu.settings import ALLOWED_FILE_EXTENSIONS, UPLOAD_DESTINATION
 from waifu.utils import allowed_file, schedule_new_query
 
-import time, calendar, os, requests
+import time, calendar, os, urllib2
 
 app = Blueprint('waifu', __name__, template_folder='templates')
 
@@ -27,15 +27,20 @@ def root():
         elif request.form['url'] is not None:
             url = request.form['url']
             try:
-                resp = requests.get(url, stream=True)
-                if resp.status_code == 200:
+                print "RETRIEVEING FILE"
+                resp = urllib2.urlopen(url)
+                print "FILE RETRIEVED"
+                if resp.code == 200:
                     filename_bestguess = url.rsplit("/")[-1]
                     filename = secure_filename(filename_bestguess)
+
                     path = os.path.join(current_app.config['UPLOAD_FOLDER'], filename)
-                    with open(path, 'wb+') as f:
-                        for chunk in resp.iter_content():
-                            f.write(chunk)
-            except requests.exceptions.MissingSchema as e:
+                    print "WRITING FILE"
+                    output = open(path,'wb')
+                    output.write(resp.read())
+                    output.close()
+                    print "FILE WRITTEN"
+            except Exception as e:
                 error = "URL provided is invalid. Images must be one of the "\
                         "following filetypes: {}".format(
                         ", ".join(ALLOWED_FILE_EXTENSIONS))

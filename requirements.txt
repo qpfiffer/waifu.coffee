@@ -2,4 +2,3 @@ msgpack-python
 pyzmq
 flask
 ipdb
-requests
