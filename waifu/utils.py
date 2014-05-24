@@ -26,7 +26,10 @@ def schedule_new_query(filepath):
     packed = msgpack.packb(msg)
     resp = send_to_runner(packed)
 
-    return resp
+    if resp == False or resp[0] == False:
+        return False
+
+    return resp[1]['query_key']
 
 def allowed_file(filename):
     return '.' in filename and filename.lower().rsplit('.', 1)[1] in ALLOWED_FILE_EXTENSIONS
