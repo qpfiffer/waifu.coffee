@@ -14,7 +14,10 @@ using namespace std;
 using namespace waifu;
 
 scheduler::scheduler() {
-    if (!db.open(JOBS_DB, PolyDB::OWRITER | PolyDB::OCREATE | PolyDB::OAUTOTRAN)) {
+    // Lets be REALLY REALLY SAFE so I don't have to open/close the DB after each
+    // interaction with it.
+    const int flags = PolyDB::OWRITER | PolyDB::OCREATE | PolyDB::OAUTOTRAN | PolyDB::OAUTOSYNC;
+    if (!db.open(JOBS_DB, flags)) {
         std::cerr << "[X] Could not open DB: " << db.error().name() << std::endl;
     }
 }
